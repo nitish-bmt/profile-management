@@ -7,10 +7,13 @@ import { useForm, SubmitHandler } from "react-hook-form";
 // my local MUI imports
 import { Button, MenuItem, Box, Typography, Container, Grid, TextField } from '../../Common/importsMUI';
 
+// import { handleNavigate } from '../Utility/RoutesComponent';
+
 import { UserData } from '../../Common/Interfaces/UserData';
 import { time } from 'console';
 import localforage from 'localforage';
 import { MainContext } from '../Utility/Context';
+import { useNavigate } from 'react-router-dom';
 
 type Inputs = {
     username: string;
@@ -31,17 +34,39 @@ const Register: React.FC = () => {
         formState: { errors },
     } = useForm<Inputs>();
 
-    const onSubmit: SubmitHandler<Inputs> = (data: Inputs) => {
-        const u = [...users, {...data, id: Date.now().toString()} ];
-        // u.push({...data, id: Date.now().toString() });
-        setUsers(u);
+    const navigate = useNavigate();
 
+    const onSubmit: SubmitHandler<Inputs> = async(data: Inputs) => {
+
+        let u:UserData[] = [];
+
+        if(data.roletype=="admin"){
+            u.push({...data, id: Date.now().toString() });
+            await setAdmin(u);
+            await localforage.setItem('admin', u);
+            console.log(u);
+        }
+        else{        
+            u = [...users];
+            u.push({...data, id: Date.now().toString() });
+            await setUsers(u);
+            await localforage.setItem('users', u);
+            console.log(u)  ;
+
+        }
+
+        // u = [...u, {...data, id: Date.now().toString()} ];
+
+        navigate('/login');
         console.log(users);
     };
 
     useEffect(()=>{
-        localforage.setItem('users', users);
-        localforage.setItem('admin', admin);
+        const updateLocalStorage = async () => {
+            await localforage.setItem('users', users);
+            await localforage.setItem('admin', admin);
+        };
+        updateLocalStorage();
     },[users, admin]);
 
     return (
@@ -60,7 +85,7 @@ const Register: React.FC = () => {
                             label="Username"
                             variant="outlined"
                             fullWidth
-                            {...register("username", { required: 'Username is required' })}
+                            {...register("username", { required: 'Username is required'})}
                             error={!!errors.username}
                             helperText={errors.username ? errors.username.message : ''}
                         />
@@ -70,26 +95,27 @@ const Register: React.FC = () => {
                             variant="outlined"
                             fullWidth
                             {...register("password", { required: 'Password is required' })}
-                            error={!!errors.password}
-                            helperText={errors.password ? errors.password.message : ''}
                         />
                         <TextField
                             select
                             label="Role Type"
                             variant="outlined"
                             fullWidth
-                            {...register("roletype", { required: 'Role type is required' })}
+                            {...register("roletype", { required: 'Role type is required'})}
                             error={!!errors.roletype}
                             helperText={errors.roletype ? errors.roletype.message : ''}
                         >
-                            <MenuItem value="admin">Admin</MenuItem>
+                            <MenuItem value="admin" >Admin</MenuItem>
                             <MenuItem value="user">User</MenuItem>
                         </TextField>
                         <TextField
                             label="Name"
                             variant="outlined"
                             fullWidth
-                            {...register("name", { required: 'Name is required' })}
+                            {...register("name", 
+                                { 
+                                    required: 'Name is required' 
+                                })}
                             error={!!errors.name}
                             helperText={errors.name ? errors.name.message : ''}
                         />
@@ -97,7 +123,10 @@ const Register: React.FC = () => {
                             label="Address"
                             variant="outlined"
                             fullWidth
-                            {...register("address", { required: 'Address is required' })}
+                            {...register("address", 
+                                {
+                                    required: 'Address is required' 
+                                })}
                             error={!!errors.address}
                             helperText={errors.address ? errors.address.message : ''}
                         />
@@ -105,7 +134,11 @@ const Register: React.FC = () => {
                             label="Phone Number"
                             variant="outlined"
                             fullWidth
-                            {...register("phonenumber", { required: 'Phone number is required' })}
+                            {...register("phonenumber", 
+                                { 
+                                    required: 'Phone number is required', 
+                                    pattern: /(\+?( |-|\.)?\d{1,2}( |-|\.)?)?(\(?\d{3}\)?|\d{3})( |-|\.)?(\d{3}( |-|\.)?\d{4})/g
+                                })}
                             error={!!errors.phonenumber}
                             helperText={errors.phonenumber ? errors.phonenumber.message : ''}
                         />

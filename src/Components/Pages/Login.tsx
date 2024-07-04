@@ -12,6 +12,10 @@ import localforage from 'localforage';
 import { UserData } from '../../Common/Interfaces/UserData';
 
 import { MainContext } from '../Utility/Context';
+import { useNavigate } from 'react-router-dom';
+
+import { Bounce, ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type Inputs = {
     userid: string;
@@ -19,9 +23,9 @@ type Inputs = {
 };
 
 const Login: React.FC = () => {
+    const navigate = useNavigate();
 
     const {users, setUsers, admin, setAdmin, activeUser, setActiveUser} = useContext(MainContext);
-
 
     const {
         register,
@@ -29,22 +33,63 @@ const Login: React.FC = () => {
         formState: { errors },
     } = useForm<Inputs>();
 
-    const onSubmit: SubmitHandler<Inputs> = (data: Inputs) => {
+    const onSubmit: SubmitHandler<Inputs> = async(data: Inputs) => {
+        
         console.log(users);
+        
         let active:UserData[] = users.filter((user)=>(user.username==data.userid && user.password==data.pass));
         console.log(active);
+        
         if(active.length==0 && admin.length!=0){
             if( admin[0].username == data.userid && admin[0].password==data.pass){
                 active = admin;
             }
         }
-        setActiveUser(active);
-        if(activeUser.length>0){
-            console.log(activeUser);
+        await setActiveUser(active);
+
+        if(active.length>0){
+
+            console.log(active);
             console.log("Successfully signed in");
+            // toast('Successfully logged in!');
+            toast.success('Successfully logged in!', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
+
+            await localforage.setItem('activeUser', active);
+            if(active[0].roletype=='user'){
+                navigate(`/profile/${active[0].username}`);
+            }
+            else{
+                navigate(`/users`);
+            }
+
+        }
+        else{
+
+            toast.error('Invalid Credentials!!', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         }
     };
 
+    // on reload
     useEffect(()=>{
         fun();
         console.log();

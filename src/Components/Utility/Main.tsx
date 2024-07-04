@@ -2,6 +2,7 @@ import React from 'react';
 
 import { useState } from 'react';
 import { createContext, useContext } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
 
 import Navbar from '../CommonComponents/Navbar';
 import RoutesComponent from './RoutesComponent';
@@ -12,6 +13,7 @@ const Main:React.FC = ()=>{
         <>
             <Navbar/>
             <Context/>
+            <ToastContainer />
             {/* <RoutesComponent/> */}
         </>
     );
